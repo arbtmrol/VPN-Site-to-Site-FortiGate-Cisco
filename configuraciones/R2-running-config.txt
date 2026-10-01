@@ -1,0 +1,61 @@
+R2#show running-config
+Building configuration...
+
+version 15.2
+hostname R2
+no aaa new-model
+no ip domain lookup
+ip cef
+
+crypto isakmp policy 10
+ hash md5
+ authentication pre-share
+ group 5
+crypto isakmp key REDACTED address 200.83.33.2
+
+crypto ipsec transform-set vpn-set esp-des esp-md5-hmac
+ mode tunnel
+
+crypto map vpn-map 10 ipsec-isakmp
+ set peer 200.83.33.2
+ set transform-set vpn-set
+ set pfs group5
+ match address 110
+
+interface FastEthernet0/0
+ ip address 200.83.34.2 255.255.255.252
+ duplex full
+ crypto map vpn-map
+
+interface FastEthernet1/0
+ ip address 192.168.33.1 255.255.255.240
+ speed auto
+ duplex auto
+
+interface FastEthernet1/1
+ no ip address
+ shutdown
+ speed auto
+ duplex auto
+
+no ip http server
+no ip http secure-server
+ip route 0.0.0.0 0.0.0.0 200.83.34.1
+
+access-list 110 permit ip 192.168.33.0 0.0.0.15 192.168.10.0 0.0.0.127
+
+line con 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+ stopbits 1
+
+line aux 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+ stopbits 1
+
+line vty 0 4
+ login
+end

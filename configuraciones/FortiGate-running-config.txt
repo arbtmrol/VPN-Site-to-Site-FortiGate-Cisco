@@ -1,0 +1,126 @@
+# FortiGate FGT1-1 - Configuración documentada del laboratorio
+
+config system global
+    set alias "FortiGate-VM64-KVM"
+    set hostname "FGT1-1"
+    set timezone 04
+end
+
+config system interface
+    edit "port1"
+        set ip 200.83.33.2 255.255.255.252
+        set allowaccess ping https ssh http fgfm
+        set type physical
+        set role wan
+    next
+    edit "port2"
+        set ip 192.168.10.1 255.255.255.128
+        set allowaccess ping
+        set type physical
+        set role lan
+    next
+    edit "port3"
+        set ip 192.168.161.101 255.255.255.0
+        set allowaccess ping https ssh http
+        set type physical
+    next
+    edit "VPN-FGT"
+        set type tunnel
+        set interface "port1"
+    next
+end
+
+config firewall address
+    edit "VPN-FGT_local_subnet_1"
+        set allow-routing enable
+        set subnet 192.168.10.0 255.255.255.128
+    next
+    edit "VPN-FGT_remote_subnet_1"
+        set allow-routing enable
+        set subnet 192.168.33.0 255.255.255.240
+    next
+end
+
+config firewall addrgrp
+    edit "VPN-FGT_local"
+        set member "VPN-FGT_local_subnet_1"
+        set allow-routing enable
+    next
+    edit "VPN-FGT_remote"
+        set member "VPN-FGT_remote_subnet_1"
+        set allow-routing enable
+    next
+end
+
+config vpn ipsec phase1-interface
+    edit "VPN-FGT"
+        set interface "port1"
+        set peertype any
+        set net-device disable
+        set proposal des-md5 des-sha1
+        set wizard-type static-fortigate
+        set remote-gw 200.83.34.2
+        # PSK REDACTADA
+    next
+end
+
+config vpn ipsec phase2-interface
+    edit "VPN-FGT"
+        set phase1name "VPN-FGT"
+        set proposal des-md5 des-sha1
+        set src-addr-type name
+        set dst-addr-type name
+        set src-name "VPN-FGT_local"
+        set dst-name "VPN-FGT_remote"
+    next
+end
+
+config router static
+    edit 1
+        set gateway 200.83.33.1
+        set device "port1"
+    next
+    edit 2
+        set device "VPN-FGT"
+        set dstaddr "VPN-FGT_remote"
+    next
+    edit 3
+        set distance 254
+        set blackhole enable
+        set dstaddr "VPN-FGT_remote"
+    next
+end
+
+config firewall policy
+    edit 1
+        set name "LAN_to_WAN"
+        set srcintf "port2"
+        set dstintf "port1"
+        set action accept
+        set srcaddr "all"
+        set dstaddr "all"
+        set schedule "always"
+        set service "ALL"
+        set nat enable
+    next
+    edit 2
+        set name "vpn_VPN-FGT_local_0"
+        set srcintf "port2"
+        set dstintf "VPN-FGT"
+        set action accept
+        set srcaddr "VPN-FGT_local"
+        set dstaddr "VPN-FGT_remote"
+        set schedule "always"
+        set service "ALL"
+    next
+    edit 3
+        set name "vpn_VPN-FGT_remote_0"
+        set srcintf "VPN-FGT"
+        set dstintf "port2"
+        set action accept
+        set srcaddr "VPN-FGT_remote"
+        set dstaddr "VPN-FGT_local"
+        set schedule "always"
+        set service "ALL"
+    next
+end
