@@ -49,9 +49,8 @@ El router R1 funciona como parte de la infraestructura intermedia entre el Forti
 
 ### Diagrama de la topología
 
-> La imagen de la topología será agregada en esta sección.
+<img width="738" height="616" alt="Topologia" src="https://github.com/user-attachments/assets/052a112f-f3d9-4b0a-8397-3e2b6dfa3f7e" />
 
-![Topología del laboratorio](diagrama/topologia.png)
 
 ---
 
